@@ -1,16 +1,17 @@
-
-'use client';
+'use client'; 
 
 import { useEffect, useState } from 'react';
-import './styles/global.css';
+import { useRouter } from 'next/navigation';
 
-const Home = () => {
+const Dashboard = () => {
   const [user, setUser] = useState<{ username: string } | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-
-    if (token) {
+    if (!token) {
+      router.push('/login');
+    } else {
       fetch('/api/validate-token', {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -20,26 +21,26 @@ const Home = () => {
         .then((data) => {
           if (data.user) {
             setUser(data.user);
+          } else {
+            router.push('/login');
           }
         })
         .catch(() => {
-          localStorage.removeItem('token');
+          router.push('/login');
         });
     }
-  }, []);
+  }, [router]);
+
+  if (!user) return <p>Loading...</p>;
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center text-blue-600 mb-4">Welcome to the Home Screen</h1>
-        {user ? (
-          <p className="text-center text-lg">Welcome, <strong>{user.username}</strong>! You are logged in.</p>
-        ) : (
-          <p className="text-center text-lg">You are a guest. Please log in to access additional features.</p>
-        )}
+        <h1 className="text-3xl font-bold text-center text-blue-600 mb-4">Dashboard</h1>
+        <p className="text-lg text-center">Hello, <strong>{user.username}</strong>!</p>
       </div>
     </div>
   );
 };
 
-export default Home;
+export default Dashboard;

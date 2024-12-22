@@ -1,7 +1,28 @@
-import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  /* config options here */
+
+// Define the configuration object
+const nextConfig = {
+  reactStrictMode: true, // Enables React strict mode
+  swcMinify: true,       // Use SWC for minification
+  images: {
+    domains: ['example.com'], // Allow images from specific domains
+  },
+  i18n: {
+    locales: ['en', 'km'],    // Supported locales
+    defaultLocale: 'en',      // Default locale
+  },
+  experimental: {
+    appDir: true, // Enable experimental app directory support
+  },
+  httpAgentOptions: {
+    keepAlive: false,
+  },
+
+
+
+
+
 };
 
+// Export the configuration
 export default nextConfig;
