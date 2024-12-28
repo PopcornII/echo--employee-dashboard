@@ -11,3 +11,4 @@ CREATE TABLE users (
 );
 
 
+-- user idetity in SQL Server instate of AUTO_INCREMENT

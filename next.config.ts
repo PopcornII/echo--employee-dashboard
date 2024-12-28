@@ -3,7 +3,6 @@
 // Define the configuration object
 const nextConfig = {
   reactStrictMode: true, // Enables React strict mode
-  swcMinify: true,       // Use SWC for minification
   images: {
     domains: ['example.com'], // Allow images from specific domains
   },
@@ -11,12 +10,11 @@ const nextConfig = {
     locales: ['en', 'km'],    // Supported locales
     defaultLocale: 'en',      // Default locale
   },
-  experimental: {
-    appDir: true, // Enable experimental app directory support
-  },
+ 
   httpAgentOptions: {
     keepAlive: false,
   },
+
 
 
 

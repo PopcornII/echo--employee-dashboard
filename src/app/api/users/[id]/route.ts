@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '../../../../lib/db'; 
-import { UserRole } from '../../../../types/user';
+import db from '@/lib/db'; 
+import { UserRole } from '@/types/user';
 
 
 // User model interface for database operations
@@ -31,11 +31,11 @@ export async function handler(request: NextRequest, { params }: { params: { id: 
       case 'GET': {
 
         // Retrieve user by ID
-        const result = await db.query('SELECT * FROM users WHERE id =?', [id]);
-        if (!result || result.length === null) {
+        const [rows] : any[] = await db.query('SELECT * FROM users WHERE id =?', [id]);
+        if (!rows || rows.length === 0) {
           return NextResponse.json({ message: 'User not found' }, { status: 404 });
         }
-        return NextResponse.json({ user: result[0] }, { status: 200 });
+        return NextResponse.json({ user: rows[0] }, { status: 200 });
         
       }
 
@@ -50,8 +50,8 @@ export async function handler(request: NextRequest, { params }: { params: { id: 
         }
 
         // Update user details
-        const result = await db.query('UPDATE users SET name = ?, role = ? WHERE id = ?', [name, role, id]);
-        if (result.affectedRows === 0) {
+        const [rows] : any[] = await db.query('UPDATE users SET name = ?, role = ? WHERE id = ?', [name, role, id]);
+        if (rows.affectedRows === 0) {
           return NextResponse.json({ message: 'User not found or no changes made' }, { status: 404 });
         }
         return NextResponse.json({ message: 'User updated successfully' }, { status: 200 });
@@ -59,8 +59,8 @@ export async function handler(request: NextRequest, { params }: { params: { id: 
 
       case 'DELETE': {
         // Delete user by ID
-        const result = await db.query('DELETE FROM users WHERE id = ?', [id]);
-        if (result.affectedRows === 0) {
+        const [rows] : any[] = await db.query('DELETE FROM users WHERE id = ?', [id]);
+        if (rows.affectedRows === 0) {
           return NextResponse.json({ message: 'User not found' }, { status: 404 });
         }
         return NextResponse.json({ message: 'User deleted successfully' }, { status: 200 });

@@ -5,15 +5,9 @@ declare namespace NodeJS {
       DATABASE_PASSWORD: string;
       DATABASE_NAME: string;
       JWT_SECRET: string;
+      JWT_EXPIRATION: string;
     }
   }
   
-  declare module 'next' {
-    interface NextApiRequest {
-      user?: {
-        id: string;
-        role: string;
-      };
-    }
-  }
+
   
