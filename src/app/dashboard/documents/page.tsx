@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 export default function UploadForm() {
+
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -20,6 +21,7 @@ export default function UploadForm() {
     }
 
     const formData = new FormData();
+    
     formData.append('file', file);
     formData.append('title', title);
     formData.append('description', description);

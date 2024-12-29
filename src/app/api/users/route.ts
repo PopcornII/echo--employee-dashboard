@@ -11,7 +11,7 @@ interface User {
   name: string;
   email: string;
   password: string;
-  role: UserRole;
+  role: number;
   created_at: Date;
 }
 
@@ -26,16 +26,17 @@ interface UpdateResult {
   affectedRows: number;
 }
 
+
 // Main handler function for CRUD operations
 export async function handler(request: NextRequest) {
   // Validate the token using jwtMiddleware
   try {
-    const decodedToken = jwtMiddleware(request); // Decodes and validates the token
-    console.log('Decoded Token:', decodedToken); // You can access the decoded token here for user details (e.g., ID, role)
+    jwtMiddleware(request); 
+   // console.log('Decoded Token:', decodedToken);
 
-    // Check permissions based on action (POST or GET)
+    // Check permissions based on action
     if (request.method === 'POST') {
-      validatePermission(request, 'create'); // Check if the user has 'create' permission
+      validatePermission(request, 'create'); 
 
       // Parse the request body and cast it to CreateRequestBody
       const body: CreateRequestBody = await request.json();
@@ -48,13 +49,12 @@ export async function handler(request: NextRequest) {
 
       // Check if the email already exists
       const normalizedEmail = email.trim().toLowerCase().replace(/\s+/g, '');
-      console.log('Normalized Email:', normalizedEmail);
-      const [existingUser] = await db.query('SELECT * FROM users WHERE LOWER(email) = LOWER(?)', [normalizedEmail]);
+      const [existingUser] = await db.query('SELECT * FROM users WHERE LOWER(email) = LOWER(?)', [ normalizedEmail]);
       console.log('Existing User:', existingUser[0]);
       
-
+      
       if (existingUser[0] && existingUser[0].length > 0) {
-        return NextResponse.json({ message: 'Email already exists', Email: normalizedEmail }, { status: 400 });
+        return NextResponse.json({ message: 'Email already exists', Email:  normalizedEmail }, { status: 400 });
       }
 
       // Hash the password
@@ -73,11 +73,10 @@ export async function handler(request: NextRequest) {
       validatePermission(request, 'read'); // Check if the user has 'read' permission
 
       // Retrieve all users from the database
-      const [users] = await db.query('SELECT * FROM users');
-      // Remove the password from the response for security
-      delete users[0].password;
-
-      return NextResponse.json({ users }, { status: 200 });
+      const [users] = await db.query('SELECT id, name, email, role, created_at FROM users');
+      
+  
+      return NextResponse.json({ message: "Success", users}, { status: 200 });
     }
   } catch (error) {
     console.error(error);

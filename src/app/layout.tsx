@@ -42,22 +42,40 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <html lang="en">
       <body className="bg-gray-50 text-gray-800">
-        <header className="bg-blue-600 text-white p-4 shadow-md">
-          <div className="container mx-auto flex justify-between items-center">
-            <h1 className="text-2xl font-semibold">Document Management System</h1>
-            {user && (
-              <button
-                className="px-4 py-2 bg-blue-700 rounded hover:bg-blue-800"
-                onClick={() => router.push('/dashboard')}
-              >
-                Dashboard
-              </button>
-            )}
+        <header className="bg-white shadow p-4 flex justify-between items-center">
+        <div className="text-xl font-bold">LOGO</div>
+        <nav className="space-x-4">
+          <a href="#" className="text-gray-700 hover:text-black">Home</a>
+          <a href="#" className="text-gray-700 hover:text-black">Community</a>
+          <a href="#" className="text-gray-700 hover:text-black">Contact</a>
+          <button className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">Dashboard</button>
+        </nav>
+      </header>
+      <main className="container mx-auto py-8">{children}</main>
+      <footer className="bg-white py-8">
+          <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
+            <div>
+              <div className="text-lg font-bold mb-2">LOGO</div>
+              <ul className="space-y-2">
+              <li>Hello</li>
+                
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-2">Explore</h4>
+              <ul className="space-y-2">
+              <li>Hello</li>
+              
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-2">Resources</h4>
+              <ul className="space-y-2">
+                <li>Hello</li>
+                
+              </ul>
+            </div>
           </div>
-        </header>
-        <main className="container mx-auto py-8">{children}</main>
-        <footer className="bg-gray-800 text-white text-center py-4">
-          <p>&copy; {new Date().getFullYear()} Document Management System. All rights reserved.</p>
         </footer>
       </body>
     </html>

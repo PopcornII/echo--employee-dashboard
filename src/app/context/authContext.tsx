@@ -1,5 +1,7 @@
 // context/AuthContext.tsx
 import React, { createContext, useState, useEffect } from 'react';
+import { getToken, storeToken, removeToken } from '../utils/storeToken';
+
 
 type User = {
   id: number;

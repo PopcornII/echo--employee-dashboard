@@ -1,24 +1,24 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { getUserProfile } from '@/lib/apiAxios'; // Centralized API logic
+import { getProfile } from '@/app/utils/storeToken'; // Centralized API logic
 import GridComponent from '@/app/components/GridComponent';
 
 export default function HomePage() {
   const router = useRouter();
-  const user = getUserProfile();
+  const user = getProfile();
 
   // Redirect to login if no user is found
-  // if (!user) {
-  //   router.push('/login');
-  //   return null;
-  // }
+  if (!user) {
+    router.push('/login');
+    return null;
+  }
 
-  // const handleLogout = () => {
-  //   document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
-  //   localStorage.removeItem('user_profile');
-  //   router.push('/login');
-  // };
+  const handleLogout = () => {
+    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+    localStorage.removeItem('user_profile');
+    router.push('/login');
+  };
 
   const gridData = [
     { id: 1, title: 'Document 1', description: 'Description of Document 1' },
