@@ -1,73 +1,44 @@
-import { useState } from 'react';
+// DocumentPage.tsx
+'use client';
 
-export default function UploadForm() {
+import React, { useEffect, useState } from 'react';
+import DocumentUploadForm from '@/app/components/DocumentUploadForm';
+import DocumentList from '@/app/components/DocumentList';
+import { getToken, getProfile, isTokenExpired, clearAll } from '@/app/utils/storeToken';
+import { useRouter } from 'next/navigation';
 
-  const [file, setFile] = useState<File | null>(null);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files ? e.target.files[0] : null;
-    setFile(selectedFile);
+const DocumentPage: React.FC = () => {
+  const [documents, setDocuments] = useState<any[]>([]); 
+  const router = useRouter();
+  const token = getToken();
+  const profile = getProfile();
+  const isExpired = isTokenExpired(token);
+ 
+useEffect(() =>{
+  
+  if (!token || !profile || isExpired){
+    clearAll();  // Clear all tokens and navigate to login page
+    router.push('/auth/login');
+    return;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
 
-    if (!file || !title) {
-      setErrorMessage('Please fill in all fields.');
-      return;
-    }
+}, [router]);
+  
 
-    const formData = new FormData();
-    
-    formData.append('file', file);
-    formData.append('title', title);
-    formData.append('description', description);
-    formData.append('uploaderId', '1'); // Hardcoding uploader ID for demo purposes
-
-    try {
-      const response = await fetch('/api/documents/upload', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        alert('Document uploaded successfully!');
-        setFile(null);
-        setTitle('');
-        setDescription('');
-      } else {
-        setErrorMessage(data.error || 'Failed to upload document.');
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      setErrorMessage('An error occurred during file upload.');
-    }
+  const handleDocumentUpload = (newDocument: any) => {
+    setDocuments((prevDocuments) => [...prevDocuments, newDocument]);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label>Title:</label>
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
-      </div>
-      <div>
-        <label>Description:</label>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
-      </div>
-      <div>
-        <label>File:</label>
-        <input type="file" onChange={handleFileChange} required />
-      </div>
-      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-      <button type="submit">Upload</button>
-    </form>
+    <div className="max-w-6xl mx-auto p-6">
+      {/* Document Upload Form */}
+      <DocumentUploadForm token={token} onDocumentUpload={handleDocumentUpload} />
+
+      {/* Document List with Pagination */}
+      <DocumentList documents={documents} />
+    </div>
   );
-}
+};
+
+export default DocumentPage;

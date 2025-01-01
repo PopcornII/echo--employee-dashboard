@@ -15,34 +15,33 @@ module.exports = {
           primary: '#1DA1F2',
           secondary: '#14171A',
       },
+      fontFamily: {
+      'sans': ['ui-sans-serif', 'system-ui'],
+      'serif': ['ui-serif', 'Georgia'],
+      'mono': ['ui-monospace', 'SFMono-Regular'],
+      'display': ['Oswald'],
+      'body': ['"Open Sans"',],
+    }
+
     },
-  },
+    screens: {
+      sm: '480px',
+      md: '768px',
+      lg: '976px',
+      xl: '1440px',
+    },
+    end: {
+      spacing: {
+        '128': '32rem',
+        '144': '36rem',
+      },
+      borderRadius: {
+        '4xl': '2rem',
+      }
+    }
+  }, 
   plugins: [
-    //   plugin(function ({ addComponents, theme }) {
-    //     addComponents({
-    //         '.btn': {
-    //             padding: '1rem 1.5rem',
-    //             borderRadius: '0.5rem',
-    //             fontWeight: '600',
-    //             display: 'inline-block',
-    //             textAlign: 'center',
-    //         },
-    //         '.btn-primary': {
-    //             backgroundColor: theme('colors.primary'),
-    //             color: '#fff',
-    //             '&:hover': {
-    //                 backgroundColor: theme('colors.primary-dark'),
-    //             },
-    //         },
-    //         '.btn-secondary': {
-    //             backgroundColor: theme('colors.secondary'),
-    //             color: '#fff',
-    //             '&:hover': {
-    //                 backgroundColor: theme('colors.secondary-dark'),
-    //             },
-    //         },
-    //     });
-    // }),
+  
     
   ],
 }

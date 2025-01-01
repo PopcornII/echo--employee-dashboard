@@ -2,22 +2,12 @@
 'use client';
 
 import React, {useState, useEffect} from 'react';
-import Layout from './components/layout';
+import Layout from './components/Layout';
 import Hero from './components/Hero';
 import Card from './components/Card';
 
-
-const documents = [
-  { id: 1, title: 'Document 1', description: 'Description of Document 1' },
-  { id: 2, title: 'Document 2', description: 'Description of Document 2' },
-  { id: 3, title: 'Document 3', description: 'Description of Document 3' },
-  { id: 4, title: 'Document 4', description: 'Description of Document 4' },
-  { id: 5, title: 'Document 5', description: 'Description of Document 5' },
-  { id: 6, title: 'Document 6', description: 'Description of Document 6' },
-];
-
 const HomePage = () => {
-  const [documents, setDocuments] = useState<any[]>([]); // List of documents from the API
+  const [documents, setDocuments] = useState([]); // List of documents from the API
   const [searchQuery, setSearchQuery] = useState<string>(''); // Search query
   const [filteredDocuments, setFilteredDocuments] = useState<any[]>([]); // Filtered documents
 
@@ -25,17 +15,9 @@ const HomePage = () => {
    // Fetch data from an API
    useEffect(() => {
     const fetchDocuments = async () => {
-      try {
-        const response = await fetch('api/documents'); // Replace with your API endpoint
-        const data = await response.json();
-      //  if (!data) {
-      //     throw new Error('No data received');
-      //   }
-        setDocuments(data);
-        setFilteredDocuments(data); // Initialize the filtered documents
-      } catch (error) {
-        console.error('Error fetching documents:', error);
-      }
+      const response = await fetch('/api/mock-data');
+      const data = await response.json();
+      setDocuments(data.data.documents);
     };
 
     fetchDocuments();

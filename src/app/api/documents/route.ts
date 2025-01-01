@@ -1,10 +1,167 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadSingle } from '@/lib/multerHelper'; 
+import { uploadSingle} from '@/lib/multerHelper'; 
 import db from '@/lib/db';
-import {jwtMiddleware } from '@/lib/jwt'; 
-import util from 'util';
+import { jwtMiddleware } from '@/lib/jwt'; 
 import { validatePermission } from '@/lib/permissions';
+import { Readable } from 'stream';
+import fs from 'fs';
+import path from 'path';
 
+export interface MulterRequest extends Readable {
+  file?: Express.Multer.File; // For single file uploads
+  files?: { [fieldname: string]: Express.Multer.File[] }; // For multiple files in fields
+  body?: { [key: string]: string };
+  headers: { [key: string]: string };
+  method: string;
+  url: string;
+}
+
+// Convert ReadableStream to Async Iterable for Node.js
+export const streamToIterable = (stream: ReadableStream<Uint8Array>) => {
+  const reader = stream.getReader();
+  return {
+    async *[Symbol.asyncIterator]() {
+      let done = false;
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        if (readerDone) {
+          done = true;
+        } else {
+          yield value;
+        }
+      }
+    },
+  };
+};
+
+// Adapt NextRequest to Node.js-style IncomingMessage
+export const adaptRequest = async (req: NextRequest): Promise<MulterRequest> => {
+  if (!req.body) return null; // Skip adaptation if body is not present
+  const iterable = streamToIterable(req.body as ReadableStream<Uint8Array>);
+  const readable = Readable.from(iterable); // Convert to Node.js readable stream
+  return Object.assign(readable, {
+    headers: Object.fromEntries(req.headers),
+    method: req.method,
+    url: req.nextUrl.pathname,
+  }) as MulterRequest;
+};
+
+// Helper function to run middleware
+export const runMiddleware = (req, res, fn) => {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result) => {
+      if (result instanceof Error) {
+        return reject(result);
+      }
+      resolve(result);
+    });
+  });
+};
+
+
+
+export async function handler(req: NextRequest) {
+  const adaptedReq = await adaptRequest(req);
+ 
+  try {
+    const decodedToken = jwtMiddleware(req);
+    const res = new NextResponse();
+  
+    if (req.method === 'POST') {
+      validatePermission(req, 'create');
+      const userId = decodedToken.data.user.id;
+      await runMiddleware(adaptedReq, res, uploadSingle);
+      // console.log('files: ', adaptedReq.files);
+  
+      // Access uploaded files
+      const files = adaptedReq.files;
+      const { title, description } = adaptedReq.body;
+      // console.log('Files:', adaptedReq.files);
+      // console.log('title:', title);
+      // console.log('description:', description);
+      
+      const documentFile = files?.file ? files.file[0] : null;
+      const imageFile = files?.image ? files.image[0] : null;
+      if (!documentFile || !imageFile) {
+        return NextResponse.json({ error: 'Document and image files are required.' }, { status: 400 });
+      }
+
+       // Log filenames for debugging
+       console.log("Document filename:", documentFile.filename);
+       console.log("Image filename:", imageFile.filename);
+
+
+      if (!title) {
+        return NextResponse.json({ error: 'Title is required.' }, { status: 400 });
+      }
+
+      const query = `
+        INSERT INTO documents (title, description, file_url, img_url, uploader_id, created_at)
+        VALUES (?, ?, ?, ?, ?, NOW())
+      `;
+      const values = [
+        title,
+        description || null,
+        documentFile.filename,
+        imageFile.filename,
+        userId,
+      ];
+
+      //console.log("Executing query with values:", query, values);
+      const [data] = await db.query(query, values);
+      
+      
+
+      return NextResponse.json(
+        {
+          message: 'Document uploaded successfully.',
+          data: data
+        },
+        { status: 201 }
+      );
+    }
+
+    if (req.method === 'GET') {
+      validatePermission(req, 'read');
+
+      const baseUrl = `${req.nextUrl.protocol}//${req.nextUrl.host}/uploads`; // Construct the base URL for files
+
+      const query = `SELECT * FROM documents`;
+      const [documents] = await db.query(query);
+
+
+      const updatedDocuments = documents.map((doc) => ({
+        ...doc,
+        file_url: `${baseUrl}/${doc.file_url}`,
+        img_url: `${baseUrl}/${doc.img_url}`,
+      }));
+    
+      return NextResponse.json({
+        message: 'Success',
+        data: updatedDocuments,
+      }, { status: 200 });
+    }
+
+  } catch (err) {
+    if (adaptedReq.files?.file) {
+      const filePath = path.resolve('public/uploads', adaptedReq.files.file[0].filename);
+      try {
+        fs.unlinkSync(filePath); // Delete the document file
+      } catch (cleanupErr) {
+        console.error('Error cleaning up document file:', cleanupErr);
+      }
+    }
+    if (adaptedReq.files?.image) {
+      const filePath = path.resolve('public/uploads', adaptedReq.files.image[0].filename);
+      try {
+        fs.unlinkSync(filePath); // Delete the image file
+      } catch (cleanupErr) {
+        console.error('Error cleaning up image file:', cleanupErr);
+      }
+    }
+    return NextResponse.json({ error: err.message || 'Something went wrong' }, { status: 500 });
+  }
+}
 
 // Disable default body parser for file uploads in Next.js API
 export const config = {
@@ -13,105 +170,5 @@ export const config = {
   },
 };
 
-
-// Convert multer middleware to promise-based for async/await usage
-const runMiddleware = util.promisify(uploadSingle); 
-
-export async function handler (req: NextRequest) {
-  try {
-    const decodedToken = jwtMiddleware(req);
-    
-    if (req.method === 'POST') {
-      // Validate role permission
-      validatePermission(req, 'create');
-
-      const userId = decodedToken.data.user.id;
-
-    // Prepare response object for multer
-      const res = new NextResponse();
-
-      // Run multer middleware to handle file upload
-      await runMiddleware(req as any, res as any);
-
-      // Extract uploaded files
-      const files = (req as any).files;
-      const file = files?.find((f: any) => f.fieldname === 'file'); // Document file
-      const image = files?.find((f: any) => f.fieldname === 'image'); // Image file
-
-      // If no document file is uploaded, return an error
-      if (!file) {
-        return NextResponse.json({ error: 'Document file is required.' }, { status: 400 });
-      }
-
-      // Parse request body for document details (title and description)
-      const body = await req.json();
-      const { title, description } = body;
-
-      if (!title) {
-        return NextResponse.json({ error: 'Title is required.' }, { status: 400 });
-      }
-
-      // Insert document metadata into the database
-      const query = `
-        INSERT INTO documents (title, description, file_url, img_url, uploader_id, created_at)
-        VALUES (?, ?, ?, ?, ?, NOW())
-      `;
-      const values = [
-        title,
-        description || null,
-        `/uploads/${file.filename}`, // URL for document
-        image ? `/uploads/${image.filename}` : null, // URL for image (optional)
-        userId, // Uploader ID (from decoded token)
-      ];
-
-      await db.query(query, values);
-
-      // Respond with success message
-      return NextResponse.json(
-        {
-          message: 'Document created successfully.',
-          data: {
-            title,
-            description,
-            file_url: `/uploads/${file.filename}`,
-            img_url: image ? `/uploads/${image.filename}` : null,
-          },
-        },
-        { status: 201 }
-      );
-    }
-
-    if(req.method === 'GET') {
-      // Validate role permission
-      validatePermission(req, 'read');
-
-      // Retrieve all documents from the database
-      const query = `
-        SELECT * FROM documents
-      `;
-      const result = await db.query(query);
-
-     let obj = {
-      data: result[0]
-     }
-
-
-      return NextResponse.json({
-        message: "Success",
-        ...obj
-      }, {status: 200});
-
-    }
-  
-
-  }catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
- 
-}
-
 export const GET = handler;
 export const POST = handler;
-
-
-

@@ -30,4 +30,15 @@ Tech Doc
 
 
 
+`Document List Response`
+  "data": {
+    "id": 1,
+    "title": "Sample Document",
+    "description": "This is a sample document.",
+    "file_url": "https://example.com/uploads/sample-document.pdf",
+    "img_url": "https://example.com/uploads/sample-image.jpg",
+    "uploader_id": 123
+  }
+
+
 

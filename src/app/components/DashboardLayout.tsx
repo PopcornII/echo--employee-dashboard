@@ -1,8 +1,9 @@
-
+'use client';
 
 // components/DashboardLayout.tsx
-import React, { ReactNode, useState } from 'react';
-import { useRouter } from 'next/router';
+import React, { ReactNode, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { getToken , getProfile} from '@/app/utils/storeToken';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -22,6 +23,19 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     setActiveMenu(menu);
     router.push(route);
   };
+
+  //Trigger navigation if fail token
+  useEffect(()=> {
+    const token = getToken();
+    console.log(token);
+    const profile = getProfile();
+    console.log(profile);
+
+    if (!token || !profile) {
+      router.push('/auth/login');
+    }
+    
+  }, [router]);
 
   return (
     <div className="flex h-screen">

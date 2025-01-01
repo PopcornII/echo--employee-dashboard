@@ -22,11 +22,26 @@ export const storeToken = (token: string) => {
   export const removeProfile = () => {
     localStorage.removeItem('user');
   };
+
   
+  export const isTokenExpired = (token: string) => {
+    if(!token) return true;
+    try{
+      const decodedToken = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      return decodedToken.exp < currentTime;
+      if(decodedToken.exp < Date.now() / 1000) return true;
+    }catch(err){
+      console.error("Error decoding token", err);
+      return true;
+    }
+  };
+  
+
   export const clearAll = () => {
     removeToken();
     removeProfile();
   };
-  ;
+  
 
 

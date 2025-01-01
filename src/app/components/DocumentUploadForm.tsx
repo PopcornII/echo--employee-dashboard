@@ -1,16 +1,19 @@
+// DocumentUploadForm.tsx
+'use client';
+
 import React, { useState } from 'react';
 
 interface DocumentFormProps {
-  token: string; // Token passed as a prop
+  token: string;
+  onDocumentUpload: (newDoc: any) => void; // Callback to update the document list after upload
 }
 
-const DocumentUploadForm: React.FC<DocumentFormProps> = ({ token }) => {
+const DocumentUploadForm: React.FC<DocumentFormProps> = ({ token, onDocumentUpload }) => {
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    file: null as File | null,
-    image: null as File | null,
-    uploaderId: '',
+    title:'',
+    description:'',
+    file: null,
+    image: null,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -35,7 +38,8 @@ const DocumentUploadForm: React.FC<DocumentFormProps> = ({ token }) => {
     if (formData.image) {
       formDataObj.append('image', formData.image);
     }
-    formDataObj.append('uploader_id', formData.uploaderId);
+
+    console.log(formDataObj);
 
     try {
       const response = await fetch('/api/documents', {
@@ -47,9 +51,10 @@ const DocumentUploadForm: React.FC<DocumentFormProps> = ({ token }) => {
       });
 
       const result = await response.json();
-
+   
       if (response.ok) {
         alert('Document uploaded successfully');
+        onDocumentUpload(result.document); // Trigger callback to update the document list
       } else {
         alert(`Error: ${result.error}`);
       }
@@ -61,7 +66,7 @@ const DocumentUploadForm: React.FC<DocumentFormProps> = ({ token }) => {
 
   return (
     <form
-      className="max-w-md mx-auto bg-white p-6 rounded shadow-md"
+      className="bg-white p-6 rounded shadow-md mb-6"
       onSubmit={handleSubmit}
       encType="multipart/form-data"
     >
@@ -105,6 +110,7 @@ const DocumentUploadForm: React.FC<DocumentFormProps> = ({ token }) => {
           required
           className="mt-1 block w-full text-gray-500"
         />
+         {formData.file && <p>Selected file: {formData.file.name}</p>}
       </div>
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700" htmlFor="image">
@@ -118,20 +124,8 @@ const DocumentUploadForm: React.FC<DocumentFormProps> = ({ token }) => {
           accept="image/png, image/jpeg"
           className="mt-1 block w-full text-gray-500"
         />
-      </div>
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700" htmlFor="uploaderId">
-          Uploader ID
-        </label>
-        <input
-          type="text"
-          id="uploaderId"
-          name="uploaderId"
-          value={formData.uploaderId}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-        />
+         {formData.image && <p>Selected image: {formData.image.name}</p>}
+         
       </div>
       <button
         type="submit"

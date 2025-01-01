@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
+    const token = getToken();
     if (token) {
       const decodedUser = JSON.parse(atob(token.split('.')[1])); // Decode JWT payload
       setUser(decodedUser);

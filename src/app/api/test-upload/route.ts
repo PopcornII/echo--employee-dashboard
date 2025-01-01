@@ -59,7 +59,6 @@ const runMiddleware = (req, res, fn) => {
 
 // File upload handler function
 export const POST = async (req: NextRequest) => {
-  const res = NextResponse;
 
   try {
     // Adapt Next.js request to Node.js-style request
@@ -77,6 +76,7 @@ export const POST = async (req: NextRequest) => {
     // Access uploaded file
     const file = adaptedReq.file;
     console.log('File: ', file);
+    
 
     if (!file) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
