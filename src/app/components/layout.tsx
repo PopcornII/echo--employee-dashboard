@@ -1,14 +1,15 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
+import Sidebar from './SideBarMenu';
+import Header from './Header';
 
-
-interface LayoutProps {
-  children: ReactNode;
-}
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      <main className="flex-1">{children}</main>
+    <div className="flex h-screen">
+      <Sidebar />
+      <main className="flex-1 flex flex-col">
+        <Header />
+        <div className="p-4 bg-gray-100 flex-1">{children}</div>
+      </main>
     </div>
   );
 };

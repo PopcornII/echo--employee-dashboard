@@ -1,44 +1,77 @@
-// DocumentPage.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import DocumentUploadForm from '@/app/components/DocumentUploadForm';
-import DocumentList from '@/app/components/DocumentList';
-import { getToken, getProfile, isTokenExpired, clearAll } from '@/app/utils/storeToken';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import DocumentGrid from '@/app/components/DocumentGrid';
+import SearchBar from '@/app/components/SearchBar';
+import { useLoginStore } from '@/app/store/useAuthStore';
 
-const DocumentPage: React.FC = () => {
-  const [documents, setDocuments] = useState<any[]>([]); 
-  const router = useRouter();
-  const token = getToken();
-  const profile = getProfile();
-  const isExpired = isTokenExpired(token);
- 
-useEffect(() =>{
-  
-  if (!token || !profile || isExpired){
-    clearAll();  // Clear all tokens and navigate to login page
-    router.push('/auth/login');
-    return;
+interface Document {
+  id: number;
+  title: string;
+  description: string;
+  img_url: string | null;
+  file_url: string;
+  created_at: string | null;
+}
+
+export default function DocumentsPage() {
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const { token, permissions , user} = useLoginStore();
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const response = await fetch('/api/documents/get-all', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch documents');
+        }
+
+        const { data } = await response.json();
+        setDocuments(data);
+      } catch (err) {
+        setError('Failed to load documents. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDocuments();
+  }, [token]);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
   };
 
+  const filteredDocuments = documents.filter((doc) =>
+    doc.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-}, [router]);
-  
-
-  const handleDocumentUpload = (newDocument: any) => {
-    setDocuments((prevDocuments) => [...prevDocuments, newDocument]);
-  };
+  const hasAccess = permissions?.includes('read');
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      {/* Document Upload Form */}
-      <DocumentUploadForm token={token} onDocumentUpload={handleDocumentUpload} />
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <SearchBar onSearch={handleSearch} />
 
-      {/* Document List with Pagination */}
-      <DocumentList documents={documents} />
+      {error && <div className="text-red-500">{error}</div>}
+      {loading && <div>Loading documents...</div>}
+      {!hasAccess && !loading && !error && (
+        <div className="text-red-500">You do not have permission to view the documents.</div>
+      )}
+      {!loading && !error && hasAccess && filteredDocuments.length === 0 && (
+        <div>No documents found.</div>
+      )}
+      {!loading && !error && hasAccess && (
+        <DocumentGrid documents={filteredDocuments} userId={user?.id}/>
+      )}
     </div>
   );
-};
-
-export default DocumentPage;
+}

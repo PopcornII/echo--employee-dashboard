@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import db from '@/lib/db';
 import { UserRole } from '../../../types/user';
-import { jwtMiddleware } from '@/lib/jwt'; // Import the JWT middleware for token validation
 import { validatePermission } from '@/lib/permissions'; // Import the permission validation function
 
 // User model interface for database operations
@@ -29,15 +28,10 @@ interface UpdateResult {
 
 // Main handler function for CRUD operations
 export async function handler(request: NextRequest) {
-  // Validate the token using jwtMiddleware
+
   try {
-    jwtMiddleware(request); 
-   // console.log('Decoded Token:', decodedToken);
 
-    // Check permissions based on action
     if (request.method === 'POST') {
-      validatePermission(request, 'create'); 
-
       // Parse the request body and cast it to CreateRequestBody
       const body: CreateRequestBody = await request.json();
       const { name, email, password, role } = body;
@@ -61,7 +55,7 @@ export async function handler(request: NextRequest) {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // Insert the new user into the database
-      const user = await db.query(
+      const [user] = await db.query(
         'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
         [name, email, hashedPassword, role]
       );
@@ -76,7 +70,7 @@ export async function handler(request: NextRequest) {
       const [users] = await db.query('SELECT id, name, email, role, created_at FROM users');
       
   
-      return NextResponse.json({ message: "Success", users}, { status: 200 });
+      return NextResponse.json({ message: "success", users}, { status: 200 });
     }
   } catch (error) {
     console.error(error);

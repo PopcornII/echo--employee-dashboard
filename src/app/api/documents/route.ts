@@ -68,7 +68,6 @@ export async function handler(req: NextRequest) {
     const res = new NextResponse();
   
     if (req.method === 'POST') {
-      validatePermission(req, 'create');
       const userId = decodedToken.data.user.id;
       await runMiddleware(adaptedReq, res, uploadSingle);
       // console.log('files: ', adaptedReq.files);
@@ -87,8 +86,8 @@ export async function handler(req: NextRequest) {
       }
 
        // Log filenames for debugging
-       console.log("Document filename:", documentFile.filename);
-       console.log("Image filename:", imageFile.filename);
+      //  console.log("Document filename:", documentFile.filename);
+      //  console.log("Image filename:", imageFile.filename);
 
 
       if (!title) {
@@ -109,8 +108,7 @@ export async function handler(req: NextRequest) {
 
       //console.log("Executing query with values:", query, values);
       const [data] = await db.query(query, values);
-      
-      
+
 
       return NextResponse.json(
         {
@@ -121,30 +119,10 @@ export async function handler(req: NextRequest) {
       );
     }
 
-    if (req.method === 'GET') {
-      validatePermission(req, 'read');
-
-      const baseUrl = `${req.nextUrl.protocol}//${req.nextUrl.host}/uploads`; // Construct the base URL for files
-
-      const query = `SELECT * FROM documents`;
-      const [documents] = await db.query(query);
-
-
-      const updatedDocuments = documents.map((doc) => ({
-        ...doc,
-        file_url: `${baseUrl}/${doc.file_url}`,
-        img_url: `${baseUrl}/${doc.img_url}`,
-      }));
-    
-      return NextResponse.json({
-        message: 'Success',
-        data: updatedDocuments,
-      }, { status: 200 });
-    }
-
   } catch (err) {
     if (adaptedReq.files?.file) {
       const filePath = path.resolve('public/uploads', adaptedReq.files.file[0].filename);
+      console.log('File: ' + filePath);
       try {
         fs.unlinkSync(filePath); // Delete the document file
       } catch (cleanupErr) {
@@ -170,5 +148,4 @@ export const config = {
   },
 };
 
-export const GET = handler;
 export const POST = handler;

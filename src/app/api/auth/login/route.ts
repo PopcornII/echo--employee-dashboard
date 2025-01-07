@@ -6,11 +6,14 @@ import bcrypt from 'bcryptjs';
 import db from '@/lib/db'; // Update the alias path based on your setup
 import { signToken } from '@/lib/jwt'; // Your JWT token generation logic
 import { z } from 'zod';
+import { permission } from 'process';
+
 
 
 //Login POST request
 export async function POST(request: NextRequest) {
   try {
+ 
 
     // const body = await request.json();
     const { username, password } = await request.json();
@@ -51,24 +54,29 @@ export async function POST(request: NextRequest) {
     // Remove the password from the user object before returning it
     delete user.password;
 
-    let obj = {
-      user: rows[0],
-    }
-
-
     // Generate a JWT token
-    const token = signToken(obj);
+    const token = signToken({ user: rows[0] });
 
     // Return the response
-    return NextResponse.json(
+    const res = NextResponse.json(
       { 
-        message: 'Login successful!',
-        errcode: '000',
-        ...obj,
-        auth_token: token, 
+        message: 'success',
+        user: {...user},
+        auth_token: token,
+        
         },
-      { status: 200 }
+        { status: 201 }
     );
+
+    res.cookies.set('auth_token', token, {
+      httpOnly: true, // Cookie is not accessible by JavaScript
+      secure: process.env.NODE_ENV === "development", // Secure only in production (HTTPS)
+      sameSite: 'strict', // CSRF protection
+      maxAge: 60 * 60, // Token expiration time (1 hour)
+      path: '/',
+    });
+
+    return res;
 
   } catch (error) {
     console.error('Error during login:', error);

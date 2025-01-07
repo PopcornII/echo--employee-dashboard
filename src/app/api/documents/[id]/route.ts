@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { uploadSingle } from '@/lib/multerHelper';
-import { validatePermission } from '@/lib/permissions';
 import { jwtMiddleware } from '@/lib/jwt';
 import fs from 'fs';
 import path from 'path';
@@ -14,39 +13,8 @@ export async function handler(req: NextRequest) {
     const decodedToken = jwtMiddleware(req);
     const userId = decodedToken.data.user.id;
 
-    // Handle GET (Retrieve Documents)
-    if (req.method === 'GET') {
-      validatePermission(req, 'read');
-
-      const { searchParams } = new URL(req.url);
-      const id = searchParams.get('id');
-
-      if (id) {
-        const query = `SELECT * FROM documents WHERE id = ?`;
-        const [document] = await db.query(query, [id]);
-
-        if (!document) {
-          return NextResponse.json({ error: 'Document not found.' }, { status: 404 });
-        }
-
-        return NextResponse.json(
-          { data: document },
-          { status: 200 }
-        );
-      } else {
-        const query = `SELECT * FROM documents`;
-        const [documents] = await db.query(query);
-
-        return NextResponse.json(
-          { data: documents },
-          { status: 200 }
-        );
-      }
-    }
-
     // Handle PUT (Update Document and Files)
     if (req.method === 'PUT') {
-      validatePermission(req, 'update');
 
       // Ensure the document ID is provided
       const { searchParams } = new URL(req.url);
@@ -113,8 +81,8 @@ export async function handler(req: NextRequest) {
 
       const params = [title, description, newDocumentUrl, newImageUrl, userId, id];
       // Log the query and parameters
-console.log("Executing query:", updateQuery);
-console.log("With parameters:", params);
+      console.log("Executing query:", updateQuery);
+      console.log("With parameters:", params);
 
       await db.query(updateQuery, params);
       
@@ -126,7 +94,6 @@ console.log("With parameters:", params);
 
     // Handle DELETE
     if (req.method === 'DELETE') {
-      validatePermission(req, 'delete');
 
       const { searchParams } = new URL(req.url);
       const id = searchParams.get('id');
@@ -171,6 +138,7 @@ console.log("With parameters:", params);
   } catch (err) {
     if (adaptedReq.files?.file) {
           const filePath = path.resolve('public/uploads', adaptedReq.files.file[0].filename);
+          console.log(`File ${filePath}`);
           try {
             fs.unlinkSync(filePath); // Delete the document file
           } catch (cleanupErr) {
@@ -200,6 +168,5 @@ export const config = {
   },
 };
 
-export const GET = handler;
 export const PUT = handler;
 export const DELETE = handler;
