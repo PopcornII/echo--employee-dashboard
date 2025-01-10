@@ -1,9 +1,8 @@
 'use client'
 
-import React, {useState} from 'react';
+import React, { useState} from 'react';
 import { useLoginStore } from '../store/useAuthStore';
 import DocumentPostForm from './PostFormModal';
-
 
 
 
@@ -20,6 +19,8 @@ const Header: React.FC = () => {
 
   // Handle document upload to update the document list
   const handleDocumentUpload = (newDoc: any) => {
+    
+    
     
     console.log('New Document uploaded:', newDoc);
   };

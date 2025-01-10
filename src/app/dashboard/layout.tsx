@@ -1,32 +1,16 @@
 'use client';
 
-import { useLoginStore } from '../store/useAuthStore'; // Adjust to your Zustand store path
+import React, {useState , useEffect} from 'react';
 import Sidebar from '@/app/components/SideBarMenu'; // Ensure this path is correct
 import Header from '@/app/components/Header';
+import ProtectedRoute from '../components/ProtectedRoute'; // Assuming ProtectedRoute component exists
+
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useLoginStore(); // Use Zustand store to get auth status
 
-  // If not authenticated, show shimmer effect while loading
-  if (!isAuthenticated) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="w-full h-full bg-gray-200 animate-pulse">
-          <div className="space-y-4 px-4 py-6">
-            {/* Shimmer for Sidebar */}
-            <div className="h-64 bg-gray-300 rounded-md animate-shimmer"></div>
-            {/* Shimmer for Content */}
-            <div className="h-16 bg-gray-300 rounded-md animate-shimmer"></div>
-            {/* Shimmer for Header */}
-            <div className="h-16 bg-gray-300 rounded-md animate-shimmer"></div>
-            {/* Shimmer for Body */}
-            <div className="h-64 bg-gray-300 rounded-md animate-shimmer"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }else{
-    return (
+
+      <ProtectedRoute> {/* Wrap the content with ProtectedRoute */}
       <div className="flex h-screen">
         {/* Static Sidebar */}
         <aside className="w-64 bg-white border-r border-gray-200 h-full fixed">
@@ -34,7 +18,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         </aside>
   
         {/* Main Content Area */}
-        <div className="ml-64 flex-1 flex flex-col ">
+        <div className="ml-64 flex-1 flex flex-col">
           {/* Static Header */}
           <header className="h-16 bg-white border-b fixed border-gray-200 z-10 flex items-center w-5/6">
             <Header />
@@ -46,9 +30,10 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           </main>
         </div>
       </div>
-    );
+    </ProtectedRoute>
 
-  }
+    )
+
 
 };
 

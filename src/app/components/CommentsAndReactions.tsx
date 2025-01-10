@@ -18,6 +18,7 @@ interface Reaction {
 interface CommentsAndReactionsProps {
   documentId: number;
   userId: number;
+  
 }
 
 const CommentsAndReactions: React.FC<CommentsAndReactionsProps> = ({
@@ -40,23 +41,26 @@ const CommentsAndReactions: React.FC<CommentsAndReactionsProps> = ({
     const fetchReactionsAndComments = async () => {
       try {
         const [reactionRes, commentRes] = await Promise.all([
-          fetch(`/api/reactions/id?id=${documentId}`, { method: 'GET' }),
-          fetch(`/api/comments/id?id=${documentId}`,{ method: 'GET' }),
+          fetch(`/api/reactions/id?id=${documentId}&userId=${userId}`, { method: 'GET' }),
+          fetch(`/api/comments/id?id=${documentId}`,{ method: 'GET' })
         ]);
-        const reactionsData: Reaction[] = await reactionRes.json();
+        const { userReaction, reactionCounts } = await reactionRes.json();
         const commentsData: Comment[] = await commentRes.json();
 
-        const reactionMap: Record<string, number> = {};
-        reactionsData.forEach((r) => {
-          reactionMap[r.emoji] = r.count;
-        });
+        console.log("Reactions Data:", { userReaction, reactionCounts });
+        console.log("Comments Data:", commentsData); // Debugging log
 
+        const reactionMap: Record<string, number> = {};
+      reactionCounts.forEach(({ emoji, count }: { emoji: string; count: number }) => {
+        reactionMap[emoji] = count;
+      });
         setReactions(reactionMap);
 
-        // Simulate getting the user's reaction (use your API logic)
-        const userReaction = reactionsData.find((r) => r.userId === userId)?.emoji;
-        setUserReaction(userReaction || null);
+        // Process user reaction
+        const userEmoji = userReaction[0]?.emoji || null;
+        setUserReaction(userEmoji);
 
+        // Handle Comments
         setComments(commentsData);
       } catch (error) {
         console.error("Error fetching reactions/comments:", error);

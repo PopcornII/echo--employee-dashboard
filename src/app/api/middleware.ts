@@ -1,6 +1,3 @@
-
-
-
 import { NextRequest, NextResponse } from 'next/server';
 import cookie from 'cookie';
 import { jwtMiddleware } from '@/lib/jwt'; // Function to verify and decode JWT
@@ -10,7 +7,7 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Skip public routes (like login or public APIs)
-  if (path.startsWith('/api/auth') || path.startsWith('/api/public')) {
+  if (path.startsWith('/api/auth') || path.startsWith('/')) {
     console.log('[Middleware] Public route, bypassing...');
     return NextResponse.next();
   }
@@ -62,3 +59,5 @@ function getActionFromPath(path: string, method: string): string {
 export const config = {
   matcher: ['/api/:path*'], // This ensures the middleware is applied only to API routes
 };
+
+console.log('object configuration:' , config);

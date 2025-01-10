@@ -3,18 +3,20 @@
 import React, { useState } from 'react';
 import { useLoginStore } from '@/app/store/useAuthStore';
 import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
 
 const LoginDialog = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Track loading state
+  const [isLoading, setIsLoading] = useState(false);
   const { setUser, setToken } = useLoginStore();
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
+    setError(''); // Clear previous error
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -23,37 +25,50 @@ const LoginDialog = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Invalid credentials.');
+        const errorMessage =
+          response.status === 401
+            ? 'Invalid username or password.'
+            : 'An unexpected error occurred. Please try again.';
+        throw new Error(errorMessage);
       }
 
-      const data = await response.json();
-      const { user, auth_token } = data;
+      const { user, auth_token } = await response.json();
 
-      // Store the auth_token in cookies
-      document.cookie = `auth_token=${auth_token}; path=/; secure; SameSite=Strict`;
-
-      // Store user in the global state
+      // Set user and token in global state (also handles cookies)
       setUser(user);
       setToken(auth_token);
 
+      // Redirect to the dashboard
       router.replace('/dashboard');
     } catch (err) {
-      setError('Invalid credentials. Please try again.');
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
-      setIsLoading(false); // Stop loading
+      setIsLoading(false);
     }
   };
 
-  const handleGuestLogin = () => {
-    const guestUser = { id: 0, name: 'Guest', email: 'guest@gmail.com', role: 5 }; // Guest role
-    setUser(guestUser);
-
-    // Set a dummy token for guest in cookies
-    document.cookie = `auth_token=guest-token; path=/; secure; SameSite=Strict`;
-
-    router.replace('/dashboard'); // Navigate to dashboard after guest login
+  const handleGuestLogin = async () => {
+    setIsLoading(true);
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guestUsername: "guest@gmail.com", guestPassword: "123456" }),
+      
+    });
+    if (!response.ok) {
+      const errorMessage =
+        response.status === 401
+         ? 'Invalid guest credentials.'
+          : 'An unexpected error occurred. Please try again.';
+      throw new Error(errorMessage);
+    }
+    const { user, auth_token } = await response.json();
+    setUser(user);
+    setToken(auth_token); // Set token in global state (also handles cookies)
+    
+    // Redirect to the dashboard
+    router.replace('/dashboard');
   };
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white shadow-indigo-50/40 p-4 rounded-lg shadow-2xl min-w-sm max-w-md w-full text-center">

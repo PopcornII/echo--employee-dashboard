@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     // Generate a JWT token
     const token = signToken({ user: rows[0] });
-
+    
     // Return the response
     const res = NextResponse.json(
       { 
@@ -69,8 +69,8 @@ export async function POST(request: NextRequest) {
     );
 
     res.cookies.set('auth_token', token, {
-      httpOnly: true, // Cookie is not accessible by JavaScript
-      secure: process.env.NODE_ENV === "development", // Secure only in production (HTTPS)
+      httpOnly: false, // if True Cookie is not accessible by JavaScript
+      secure: false, // if True Secure only in production (HTTPS)
       sameSite: 'strict', // CSRF protection
       maxAge: 60 * 60, // Token expiration time (1 hour)
       path: '/',

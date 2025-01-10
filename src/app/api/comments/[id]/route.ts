@@ -23,9 +23,8 @@ export async function handler(req: NextRequest): Promise<NextResponse> {
 
     if (req.method === "GET") {
       const { searchParams } = new URL(req.url);
-      console.log(searchParams)
       const documentId = searchParams.get("id");
-      console.log(documentId)
+     console.log('ducumentId: ' + documentId);
 
       // Validate the documentId query parameter
       if (!documentId) {

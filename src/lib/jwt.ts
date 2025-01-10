@@ -82,27 +82,29 @@
 // // };
 
 import jwt from 'jsonwebtoken';
-import cookie from 'cookie';
 import { NextRequest } from 'next/server';
 
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRATION = process.env.JWT_EXPIRATION;
+const JWT_SECRET = process.env.JWT_SECRET || "";
+const JWT_EXPIRATION = process.env.JWT_EXPIRATION || "1h";
 
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET is not defined in environment variables.');
 }
 
+// Payload structure
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: number;
+  created_at: string;
+}
+
 // Predefined properties payload structure
 interface JwtPayload {
   data: {
-    user: {
-      id: number;
-      name: string;
-      email: string;
-      role: number;
-      created_at: string;
-    };
+    user: User;
   };
   iat: number;
   exp: number;
@@ -133,6 +135,7 @@ export const jwtMiddleware = (request: NextRequest): JwtPayload => {
   // Extract cookies from the request
   const cookies = request.cookies;
   const tokenCookie = cookies.get('auth_token');
+  console.log("TokenCookies: " + tokenCookie);
  
 
    // Check if the token exists, and retrieve the value
@@ -142,11 +145,11 @@ export const jwtMiddleware = (request: NextRequest): JwtPayload => {
 
   const token = tokenCookie.value;
 
-
-  const decoded = verifyToken(token);
-  if (!decoded) {
-    throw new Error('Unauthorized: Invalid token.');
+  try {
+    const decoded = verifyToken(token);
+    console.log("Decoded Token: " + JSON.stringify(decoded));
+    return decoded as JwtPayload;
+  } catch (err: any) {
+    throw new Error(`Unauthorized: ${err.message}`);
   }
-
-  return decoded as JwtPayload;
 };

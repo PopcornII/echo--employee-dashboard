@@ -22,28 +22,29 @@ export default function DashboardPage() {
 
   const { token, permissions , user} = useLoginStore();
 
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        const response = await fetch('/api/documents/get-all', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  const fetchDocuments = async () => {
+    try {
+      const response = await fetch('/api/documents/get-all', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch documents');
-        }
-
-        const { data } = await response.json();
-        setDocuments(data);
-      } catch (err) {
-        setError('Failed to load documents. Please try again.');
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error('Failed to fetch documents');
       }
-    };
 
+      const { data } = await response.json();
+      setDocuments(data);
+    } catch (err) {
+      setError('Failed to load documents. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setLoading(true);
     fetchDocuments();
   }, [token]);
 
@@ -58,7 +59,8 @@ export default function DashboardPage() {
   const hasAccess = permissions?.includes('read');
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+  
+      <div className="p-6 bg-gray-100 min-h-screen">
       <SearchBar onSearch={handleSearch} />
 
       {error && <div className="text-red-500">{error}</div>}

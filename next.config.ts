@@ -15,8 +15,7 @@ const nextConfig = {
     keepAlive: false,
   },
 
-
-
+  //swcMinify: false,
 
 
 

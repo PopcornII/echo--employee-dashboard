@@ -96,7 +96,8 @@ export const useLoginStore = create<LoginState>()(
 
       initializeSession: () => {
         const token = Cookies.get('auth_token');
-        if (token || !isTokenExpired(token)) {
+        console.log('Token:', token);
+        if (token && !isTokenExpired(token)) {
           try {
             const parts = token.split('.');
             if (parts.length !== 3) {
@@ -120,7 +121,7 @@ export const useLoginStore = create<LoginState>()(
     }),
     {
       name: 'auth-store',
-      partialize: (state) => ({ token: state.token, permissions: state.permissions, isAuthenticated: state.isAuthenticated }),
+      partialize: (state) => ({ token: state.token, permissions: state.permissions }),
       version: 1,
     }
   )

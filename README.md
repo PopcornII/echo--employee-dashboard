@@ -46,3 +46,7 @@ Tech Doc
 
 
 
+{
+  "userReaction": { "emoji": "❤️" },
+  "totalReactions": 15
+}

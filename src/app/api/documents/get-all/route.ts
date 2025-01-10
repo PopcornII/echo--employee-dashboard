@@ -3,8 +3,6 @@ import db from '@/lib/db';
 import { jwtMiddleware } from '@/lib/jwt'; 
 
 
-
-
 export async function handler(req: NextRequest) {
   try {
     jwtMiddleware(req);

@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http'; // Helper for mocking requests
-import { POST } from '@/app/api/auth/login/route'; // Path to your route
+import { POST } from '@/app/api/auth/[...login]/route'; // Path to your route
 import { NextResponse } from 'next/server';
 
 // Mock a Next.js response for testing
